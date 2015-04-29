@@ -4,6 +4,7 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedLists      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies #-}
 
 --------------------------------------------------------------------
 -- |
@@ -47,6 +48,8 @@ import           Data.MessagePack.Get
 import           Data.MessagePack.Put
 
 import           Prelude                hiding (putStr)
+
+import qualified GHC.Exts
 
 -- | Object Representation of MessagePack data.
 data Object
@@ -232,6 +235,11 @@ instance (MessagePack k, MessagePack v, Hashable k, Eq k) => MessagePack (HashMa
   fromObject obj = HashMap.fromList . unAssoc <$> fromObject obj
 
 -- tuples
+instance GHC.Exts.IsList (V.Vector a) where
+    type Item (V.Vector a) = a
+    fromList  = V.fromList
+    toList    = V.toList
+    fromListN = V.fromListN
 
 instance (MessagePack a1, MessagePack a2) => MessagePack (a1, a2) where
   toObject (a1, a2) = ObjectArray [toObject a1, toObject a2]
@@ -272,3 +280,9 @@ instance (MessagePack a1, MessagePack a2, MessagePack a3, MessagePack a4, Messag
   toObject (a1, a2, a3, a4, a5, a6, a7, a8, a9) = ObjectArray [toObject a1, toObject a2, toObject a3, toObject a4, toObject a5, toObject a6, toObject a7, toObject a8, toObject a9]
   fromObject (ObjectArray [a1, a2, a3, a4, a5, a6, a7, a8, a9]) = (,,,,,,,,) <$> fromObject a1 <*> fromObject a2 <*> fromObject a3 <*> fromObject a4 <*> fromObject a5 <*> fromObject a6 <*> fromObject a7 <*> fromObject a8 <*> fromObject a9
   fromObject _ = Nothing
+{-
+instance GHC.Exts.IsList (V.Vector a) where
+    type Item (V.Vector a) = a
+    fromList = V.Vector.fromList
+    toList = V.Vector.toList
+-}
